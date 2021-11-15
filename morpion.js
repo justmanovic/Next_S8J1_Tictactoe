@@ -1,10 +1,9 @@
 class Morpion {
     humanPlayer = "J1";
     iaPlayer = "J2";
-    iaLevel = 2;
+    iaLevel = 1;
     turn = 0;
     gameOver = false;
-
     gridMap = [
         [null, null, null],
         [null, null, null],
@@ -32,10 +31,22 @@ class Morpion {
     constructor(firstPlayer = "J1") {
         this.humanPlayer = firstPlayer;
         this.iaPlayer = firstPlayer === "J1" ? "J2" : "J1";
-        this.initGame();
+        this.getDifficultyLevel();
     }
 
+    getDifficultyLevel = () => {
+        let difficultySelect = document.querySelector("select");
+        console.log(difficultySelect.value);
+
+        difficultySelect.addEventListener("change", () => {
+            console.log("nouvelle difficulté", difficultySelect.value);
+            this.iaLevel = difficultySelect.value;
+            this.initGame();
+        });
+    };
+
     initGame = () => {
+        console.log("initgame difficulty", this.iaLevel);
         this.gridMap.forEach((line, y) => {
             line.forEach((cell, x) => {
                 this.getCell(x, y).onclick = () => {
