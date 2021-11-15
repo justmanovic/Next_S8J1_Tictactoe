@@ -4,7 +4,8 @@ class Morpion {
     iaLevel = 1;
     turn = 0;
     gameOver = false;
-    gridMap = [
+
+    gridMap = JSON.parse(localStorage.getItem("currentGridMap")) || [
         [null, null, null],
         [null, null, null],
         [null, null, null],
@@ -31,6 +32,8 @@ class Morpion {
     constructor(firstPlayer = "J1") {
         this.humanPlayer = firstPlayer;
         this.iaPlayer = firstPlayer === "J1" ? "J2" : "J1";
+        this.iaLevel = localStorage.getItem("iaLevel") || 1;
+        console.log(this.iaLevel);
         this.getDifficultyLevel();
     }
 
@@ -41,16 +44,36 @@ class Morpion {
         difficultySelect.addEventListener("change", () => {
             console.log("nouvelle difficulté", difficultySelect.value);
             this.iaLevel = difficultySelect.value;
-            this.initGame();
+            localStorage.setItem("iaLevel", this.iaLevel);
         });
+
+        this.initGame();
     };
 
     initGame = () => {
         console.log("initgame difficulty", this.iaLevel);
+
+        this.gridMap.forEach((line, y) => {
+            line.forEach((cell, x) => {
+                this.getCell(x, y).classList.add(
+                    `filled-${this.gridMap[y][x]}`
+                );
+            });
+        });
+
+        // this.getCell(x, y).classList.add(`filled-${player}`)
+
         this.gridMap.forEach((line, y) => {
             line.forEach((cell, x) => {
                 this.getCell(x, y).onclick = () => {
                     this.doPlayHuman(x, y);
+                    localStorage.setItem(
+                        "currentGridMap",
+                        JSON.stringify(this.gridMap)
+                    );
+                    console.log(
+                        JSON.parse(localStorage.getItem("currentGridMap"))
+                    );
                 };
             });
         });
@@ -338,3 +361,11 @@ class Morpion {
         return bestHumanScore;
     };
 }
+
+let playAgainButton = document.querySelector("a");
+playAgainButton.addEventListener("click", (e) => {
+    localStorage.clear();
+    let morpion = new Morpion();
+});
+
+let morpion = new Morpion();
