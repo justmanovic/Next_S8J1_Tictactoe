@@ -1,3 +1,32 @@
+class Memento {
+    constructor() {
+        this.values = [];
+        this.index = 0;
+    }
+
+    addElement = (element) => {
+        this.values.splice(this.index + 1, this.values.length); //On supprime tout ce qu'il y a après notre index
+        this.values.push(JSON.stringify(element));
+        this.index++;
+    };
+
+    undo = () => {
+        if (this.index <= 0) {
+            return false;
+        }
+        this.index--;
+        return JSON.parse(this.values[this.index]);
+    };
+
+    redo = () => {
+        if (this.index >= values.length) {
+            return false;
+        }
+        this.index++;
+        return JSON.parse(this.values[this.index]);
+    };
+}
+
 class Morpion {
     humanPlayer = "J1";
     iaPlayer = "J2";
@@ -29,13 +58,29 @@ class Morpion {
         ],
     ];
 
+    // history = new Memento()
+
     constructor(firstPlayer = "J1") {
         this.humanPlayer = firstPlayer;
         this.iaPlayer = firstPlayer === "J1" ? "J2" : "J1";
         this.iaLevel = localStorage.getItem("iaLevel") || 1;
         console.log(this.iaLevel);
+        this.history = new Memento();
+        this.history.addElement(this.gridMap);
         this.getDifficultyLevel();
     }
+
+    addToMemento = () => {
+        console.log("je suis dans le memento");
+        this.history.addElement(this.gridMap);
+    };
+
+    undo = () => {
+        console.log("la grille a l'entrée du undo est  :", this.gridMap);
+        console.log(this.history.undo());
+        // this.gridMap = this.history.undo();
+        console.log("la grille à la sortie du undo est : ", this.gridMap);
+    };
 
     getDifficultyLevel = () => {
         let difficultySelect = document.querySelector("select");
@@ -47,6 +92,7 @@ class Morpion {
             localStorage.setItem("iaLevel", this.iaLevel);
         });
 
+        console.log(this.history.values);
         this.initGame();
     };
 
@@ -66,6 +112,10 @@ class Morpion {
         this.gridMap.forEach((line, y) => {
             line.forEach((cell, x) => {
                 this.getCell(x, y).onclick = () => {
+                    localStorage.setItem(
+                        "previoustGridMap",
+                        JSON.stringify(this.gridMap)
+                    );
                     this.doPlayHuman(x, y);
                     localStorage.setItem(
                         "currentGridMap",
@@ -157,7 +207,25 @@ class Morpion {
             return false;
         }
 
-        this.gridMap[y][x] = player;
+        console.log("je joue pour :", player);
+        console.log("la grille à l'entrée du drawhit est : ", this.gridMap);
+
+        this.gridMap[y][x] = "coucou";
+        // this.gridMap[y][x] = player;
+        console.log("la grille à la sortie du drawhit est : ", this.gridMap);
+        this.addToMemento();
+        console.log(
+            "nous sommes au niveau : ",
+            this.history.index,
+            "de l'history et le tableau est : ",
+            JSON.parse(this.history.values[this.history.index - 1])
+        );
+        console.log("la grille est : ", this.gridMap);
+        console.log("**********");
+        console.log(this.turn);
+        this.undo();
+        console.log("**********");
+
         this.turn += 1;
         this.getCell(x, y).classList.add(`filled-${player}`);
         this.checkWinner(player);
@@ -172,7 +240,7 @@ class Morpion {
         // Peut-on utiliser un objet de fonctions plutôt que des if ?
         if (this.drawHit(x, y, this.humanPlayer)) {
             if (this.iaLevel == 1) {
-                this.doPlayIa1();
+                setTimeout(()=>{this.doPlayIa1()}, 10000);
             } else if (this.iaLevel == 2) {
                 this.doPlayIa2(this.gridMap);
             } else if (this.iaLevel == 3) {
